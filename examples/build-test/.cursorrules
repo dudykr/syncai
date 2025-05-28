@@ -1,0 +1,21 @@
+# Build Test Project Rules
+
+This project is used for testing the SyncAI build functionality.
+
+## General Guidelines
+- Always use TypeScript for type safety
+- Follow clean code principles
+- Write self-documenting code
+- Use modern ES6+ features
+
+## Project Structure
+- Keep components small and focused
+- Use barrel exports (index.ts files)
+- Organize code by feature, not by file type
+- Separate business logic from UI components
+
+## Error Handling
+- Use custom error types
+- Provide meaningful error messages
+- Handle edge cases gracefully
+- Log errors appropriately 

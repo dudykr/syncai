@@ -96,9 +96,11 @@ func (p *Parser) parseRulesDir(rulesDir string, rules *types.CursorRules) error 
 			}
 
 			// Get relative path from project root for the folder rule
-			relPath, err := filepath.Rel(p.rootDir, filepath.Dir(rulesDir))
+			// rulesDir is .../somefolder/.cursor/rules, we want .../somefolder
+			cursorParentDir := filepath.Dir(filepath.Dir(rulesDir))
+			relPath, err := filepath.Rel(p.rootDir, cursorParentDir)
 			if err != nil {
-				relPath = filepath.Dir(rulesDir)
+				relPath = cursorParentDir
 			}
 
 			rules.FolderRules[relPath] = content

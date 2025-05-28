@@ -1,0 +1,27 @@
+# Backend Rules
+
+When working on backend code:
+
+## API Design
+- Use RESTful conventions for endpoints
+- Implement proper HTTP status codes
+- Version your APIs (e.g., /api/v1/)
+- Document all endpoints with OpenAPI/Swagger
+
+## Database
+- Use migrations for schema changes
+- Implement proper indexing for queries
+- Use connection pooling for database access
+- Follow database normalization principles
+
+## Security
+- Validate all input data
+- Use proper authentication and authorization
+- Implement rate limiting
+- Never log sensitive information
+
+## Performance
+- Use caching where appropriate
+- Implement pagination for large datasets
+- Use background jobs for long-running tasks
+- Monitor and log performance metrics # Updated Backend Rules

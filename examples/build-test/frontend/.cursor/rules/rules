@@ -1,0 +1,21 @@
+# Frontend Rules
+
+When working on frontend code:
+
+## React Guidelines
+- Use functional components with hooks
+- Implement proper prop types or TypeScript interfaces
+- Use React.memo for performance optimization when needed
+- Follow the single responsibility principle for components
+
+## State Management
+- Use useState for local component state
+- Use useContext for shared state across components
+- Consider useReducer for complex state logic
+- Minimize prop drilling
+
+## Styling
+- Use CSS modules or styled-components
+- Follow BEM naming convention for CSS classes
+- Implement responsive design patterns
+- Use CSS custom properties for theming 
