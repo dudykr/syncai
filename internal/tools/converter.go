@@ -144,14 +144,19 @@ func (c *Converter) convertToWindSurf(rules *types.CursorRules, config types.Too
 
 // convertToRooCode converts to Roo Code format
 func (c *Converter) convertToRooCode(rules *types.CursorRules, config types.ToolConfig, targetDir string) error {
-	// Create .roo/rules directory for workspace-wide rules
-	rooRulesDir := filepath.Join(targetDir, ".roo", "rules")
-	if err := os.MkdirAll(rooRulesDir, 0755); err != nil {
-		return fmt.Errorf("failed to create .roo/rules directory: %w", err)
+	// Convert targetDir to absolute path for proper relative path calculation
+	absTargetDir, err := filepath.Abs(targetDir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for target directory: %w", err)
 	}
 
-	// Write global rules to .roo/rules/
+	// Write global rules to the root .roo/rules directory
 	if rules.GlobalRules != "" {
+		rooRulesDir := filepath.Join(targetDir, ".roo", "rules")
+		if err := os.MkdirAll(rooRulesDir, 0755); err != nil {
+			return fmt.Errorf("failed to create .roo/rules directory: %w", err)
+		}
+
 		globalRulesPath := filepath.Join(rooRulesDir, "01-global.md")
 		globalContent := "# Global Rules\n\n" + rules.GlobalRules
 		if err := c.writeFile(globalRulesPath, globalContent); err != nil {
@@ -159,47 +164,73 @@ func (c *Converter) convertToRooCode(rules *types.CursorRules, config types.Tool
 		}
 	}
 
-	// Write always-apply MDC rules to .roo/rules/
-	ruleIndex := 2
+	// Write MDC rules to their respective .roo directories (same level as .cursor)
 	for _, mdcRule := range rules.MDCRules {
-		if mdcRule.AlwaysApply {
-			filename := fmt.Sprintf("%02d-%s.md", ruleIndex, sanitizeFilename(mdcRule.Name))
+		// Get the folder path from the MDC file path
+		// mdcRule.FilePath is like "/path/to/project/frontend/.cursor/rules/testing.mdc"
+		// We want to extract "frontend" part
+		relPath, err := filepath.Rel(absTargetDir, mdcRule.FilePath)
+		if err != nil {
+			// If we can't get relative path, skip this rule or put in root
+			c.logger.Warnf("Could not determine relative path for MDC rule %s: %v", mdcRule.Name, err)
+			continue
+		}
+
+		// Extract folder path from the relative path
+		// relPath is like "frontend/.cursor/rules/testing.mdc"
+		// We want "frontend"
+		parts := strings.Split(relPath, string(filepath.Separator))
+
+		if len(parts) < 3 || parts[1] != ".cursor" || parts[2] != "rules" {
+			// This MDC file is not in a standard .cursor/rules structure, put in root
+			rooRulesDir := filepath.Join(targetDir, ".roo", "rules")
+			if err := os.MkdirAll(rooRulesDir, 0755); err != nil {
+				return fmt.Errorf("failed to create .roo/rules directory: %w", err)
+			}
+
+			filename := fmt.Sprintf("%s.md", sanitizeFilename(mdcRule.Name))
 			rulePath := filepath.Join(rooRulesDir, filename)
 			content := fmt.Sprintf("# %s\n\n%s", mdcRule.Name, mdcRule.Content)
 			if err := c.writeFile(rulePath, content); err != nil {
 				return err
 			}
-			ruleIndex++
+			continue
 		}
-	}
 
-	// Write folder rules to .roo/rules/
-	for folderPath, folderContent := range rules.FolderRules {
-		filename := fmt.Sprintf("%02d-folder-%s.md", ruleIndex, sanitizeFilename(folderPath))
-		rulePath := filepath.Join(rooRulesDir, filename)
-		content := fmt.Sprintf("# Rules for %s\n\n%s", folderPath, folderContent)
+		// Create .roo directory at the same level as .cursor
+		folderPath := parts[0]
+		folderRooDir := filepath.Join(targetDir, folderPath, ".roo")
+		if err := os.MkdirAll(folderRooDir, 0755); err != nil {
+			return fmt.Errorf("failed to create .roo directory for %s: %w", folderPath, err)
+		}
+
+		// Write MDC rule to folder's .roo directory
+		filename := fmt.Sprintf("%s.md", sanitizeFilename(mdcRule.Name))
+		rulePath := filepath.Join(folderRooDir, filename)
+
+		content := fmt.Sprintf("# %s\n\n%s", mdcRule.Name, mdcRule.Content)
+		if len(mdcRule.Globs) > 0 {
+			content = fmt.Sprintf("# %s\n\n**Applies to:** %s\n\n%s", mdcRule.Name, strings.Join(mdcRule.Globs, ", "), mdcRule.Content)
+		}
+
 		if err := c.writeFile(rulePath, content); err != nil {
 			return err
 		}
-		ruleIndex++
 	}
 
-	// Write conditional MDC rules to .roo/rules/
-	for _, mdcRule := range rules.MDCRules {
-		if !mdcRule.AlwaysApply {
-			filename := fmt.Sprintf("%02d-conditional-%s.md", ruleIndex, sanitizeFilename(mdcRule.Name))
-			rulePath := filepath.Join(rooRulesDir, filename)
+	// Write folder rules to their respective .roo directories (same level as .cursor)
+	for folderPath, folderContent := range rules.FolderRules {
+		// Create .roo directory at the same level as .cursor
+		folderRooDir := filepath.Join(targetDir, folderPath, ".roo")
+		if err := os.MkdirAll(folderRooDir, 0755); err != nil {
+			return fmt.Errorf("failed to create .roo directory for %s: %w", folderPath, err)
+		}
 
-			globsInfo := ""
-			if len(mdcRule.Globs) > 0 {
-				globsInfo = fmt.Sprintf("\n\n**Applies to:** %s", strings.Join(mdcRule.Globs, ", "))
-			}
-
-			content := fmt.Sprintf("# %s%s\n\n%s", mdcRule.Name, globsInfo, mdcRule.Content)
-			if err := c.writeFile(rulePath, content); err != nil {
-				return err
-			}
-			ruleIndex++
+		// Write folder-specific rules to .roo/rules.md
+		rulePath := filepath.Join(folderRooDir, "rules.md")
+		content := fmt.Sprintf("# Rules for %s\n\n%s", folderPath, folderContent)
+		if err := c.writeFile(rulePath, content); err != nil {
+			return err
 		}
 	}
 
