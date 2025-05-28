@@ -90,9 +90,9 @@ func GetToolConfigs() map[TargetTool]ToolConfig {
 		TargetCline: {
 			Tool:                TargetCline,
 			SupportsGlobalRules: true,
-			SupportsFolderRules: false,
-			SupportsMDCRules:    false,
-			FileExtension:       ".md",
+			SupportsFolderRules: true,
+			SupportsMDCRules:    true,
+			FileExtension:       ".mdc",
 			ConfigPath:          ".clinerules",
 			FolderConfigName:    "",
 		},

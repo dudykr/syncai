@@ -269,22 +269,96 @@ func sanitizeFilename(name string) string {
 
 // convertToCline converts to Cline format
 func (c *Converter) convertToCline(rules *types.CursorRules, config types.ToolConfig, targetDir string) error {
-	content := c.buildGlobalContent(rules)
-
-	// Create .clinerules file
-	clinerulePath := filepath.Join(targetDir, config.ConfigPath)
-	if err := c.writeFile(clinerulePath, content); err != nil {
-		return err
+	// Convert targetDir to absolute path for proper relative path calculation
+	absTargetDir, err := filepath.Abs(targetDir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for target directory: %w", err)
 	}
 
-	// Create .cline directory with instructions.md
-	clineDir := filepath.Join(targetDir, ".cline")
-	if err := os.MkdirAll(clineDir, 0755); err != nil {
-		return fmt.Errorf("failed to create .cline directory: %w", err)
+	// Write global rules to the root .clinerules directory
+	if rules.GlobalRules != "" {
+		clineRulesDir := filepath.Join(targetDir, ".clinerules")
+		if err := os.MkdirAll(clineRulesDir, 0755); err != nil {
+			return fmt.Errorf("failed to create .clinerules directory: %w", err)
+		}
+
+		globalRulesPath := filepath.Join(clineRulesDir, "01-global.md")
+		globalContent := "# Global Rules\n\n" + rules.GlobalRules
+		if err := c.writeFile(globalRulesPath, globalContent); err != nil {
+			return err
+		}
 	}
 
-	instructionsPath := filepath.Join(clineDir, "instructions.md")
-	return c.writeFile(instructionsPath, content)
+	// Write MDC rules to their respective .clinerules directories (same level as .cursor)
+	for _, mdcRule := range rules.MDCRules {
+		// Get the folder path from the MDC file path
+		// mdcRule.FilePath is like "/path/to/project/frontend/.cursor/rules/testing.mdc"
+		// We want to extract "frontend" part
+		relPath, err := filepath.Rel(absTargetDir, mdcRule.FilePath)
+		if err != nil {
+			// If we can't get relative path, skip this rule or put in root
+			c.logger.Warnf("Could not determine relative path for MDC rule %s: %v", mdcRule.Name, err)
+			continue
+		}
+
+		// Extract folder path from the relative path
+		// relPath is like "frontend/.cursor/rules/testing.mdc"
+		// We want "frontend"
+		parts := strings.Split(relPath, string(filepath.Separator))
+
+		if len(parts) < 3 || parts[1] != ".cursor" || parts[2] != "rules" {
+			// This MDC file is not in a standard .cursor/rules structure, put in root
+			clineRulesDir := filepath.Join(targetDir, ".clinerules")
+			if err := os.MkdirAll(clineRulesDir, 0755); err != nil {
+				return fmt.Errorf("failed to create .clinerules directory: %w", err)
+			}
+
+			// Keep original filename with .mdc extension
+			originalFilename := filepath.Base(mdcRule.FilePath)
+			rulePath := filepath.Join(clineRulesDir, originalFilename)
+			// Use buildMDCContent to preserve frontmatter
+			content := c.buildMDCContent(mdcRule)
+			if err := c.writeFile(rulePath, content); err != nil {
+				return err
+			}
+			continue
+		}
+
+		// Create .clinerules directory at the same level as .cursor
+		folderPath := parts[0]
+		folderClineDir := filepath.Join(targetDir, folderPath, ".clinerules")
+		if err := os.MkdirAll(folderClineDir, 0755); err != nil {
+			return fmt.Errorf("failed to create .clinerules directory for %s: %w", folderPath, err)
+		}
+
+		// Keep original filename with .mdc extension
+		originalFilename := filepath.Base(mdcRule.FilePath)
+		rulePath := filepath.Join(folderClineDir, originalFilename)
+
+		// Use buildMDCContent to preserve frontmatter
+		content := c.buildMDCContent(mdcRule)
+		if err := c.writeFile(rulePath, content); err != nil {
+			return err
+		}
+	}
+
+	// Write folder rules to their respective .clinerules directories (same level as .cursor)
+	for folderPath, folderContent := range rules.FolderRules {
+		// Create .clinerules directory at the same level as .cursor
+		folderClineDir := filepath.Join(targetDir, folderPath, ".clinerules")
+		if err := os.MkdirAll(folderClineDir, 0755); err != nil {
+			return fmt.Errorf("failed to create .clinerules directory for %s: %w", folderPath, err)
+		}
+
+		// Write folder-specific rules to .clinerules/rules.md
+		rulePath := filepath.Join(folderClineDir, "rules.md")
+		content := fmt.Sprintf("# Rules for %s\n\n%s", folderPath, folderContent)
+		if err := c.writeFile(rulePath, content); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // buildGlobalContent builds the global content combining all rules
