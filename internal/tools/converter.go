@@ -74,10 +74,8 @@ func (c *Converter) ConvertRules(rules *types.CursorRules, targets []types.Targe
 
 // convertToTool converts rules to a specific tool format
 func (c *Converter) convertToTool(rules *types.CursorRules, config types.ToolConfig) error {
-	targetDir := filepath.Join(c.outputDir, string(config.Tool))
-	if err := os.MkdirAll(targetDir, 0755); err != nil {
-		return fmt.Errorf("failed to create target directory: %w", err)
-	}
+	// Use outputDir directly instead of creating tool-specific directories
+	targetDir := c.outputDir
 
 	switch config.Tool {
 	case types.TargetCursor:
@@ -170,15 +168,22 @@ func (c *Converter) convertToRooCode(rules *types.CursorRules, config types.Tool
 
 // convertToCline converts to Cline format
 func (c *Converter) convertToCline(rules *types.CursorRules, config types.ToolConfig, targetDir string) error {
-	// Cline only supports global rules
 	content := c.buildGlobalContent(rules)
 
-	globalPath := filepath.Join(targetDir, config.ConfigPath)
-	if err := os.MkdirAll(filepath.Dir(globalPath), 0755); err != nil {
+	// Create .clinerules file
+	clinerulePath := filepath.Join(targetDir, config.ConfigPath)
+	if err := c.writeFile(clinerulePath, content); err != nil {
 		return err
 	}
 
-	return c.writeFile(globalPath, content)
+	// Create .cline directory with instructions.md
+	clineDir := filepath.Join(targetDir, ".cline")
+	if err := os.MkdirAll(clineDir, 0755); err != nil {
+		return fmt.Errorf("failed to create .cline directory: %w", err)
+	}
+
+	instructionsPath := filepath.Join(clineDir, "instructions.md")
+	return c.writeFile(instructionsPath, content)
 }
 
 // buildGlobalContent builds the global content combining all rules

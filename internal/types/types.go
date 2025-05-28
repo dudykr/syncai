@@ -93,7 +93,7 @@ func GetToolConfigs() map[TargetTool]ToolConfig {
 			SupportsFolderRules: false,
 			SupportsMDCRules:    false,
 			FileExtension:       ".md",
-			ConfigPath:          ".cline/instructions.md",
+			ConfigPath:          ".clinerules",
 			FolderConfigName:    "",
 		},
 	}
