@@ -45,7 +45,7 @@ appropriate configuration files for each target tool.`,
 		},
 	}
 
-	rootCmd.PersistentFlags().StringVarP(&outputDir, "output", "o", "dist", "Output directory for generated files")
+	rootCmd.PersistentFlags().StringVarP(&outputDir, "output", "o", ".", "Output directory for generated files")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging")
 
 	rootCmd.AddCommand(buildCmd())
