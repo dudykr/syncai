@@ -188,9 +188,11 @@ func (c *Converter) convertToRooCode(rules *types.CursorRules, config types.Tool
 				return fmt.Errorf("failed to create .roo/rules directory: %w", err)
 			}
 
-			filename := fmt.Sprintf("%s.md", sanitizeFilename(mdcRule.Name))
-			rulePath := filepath.Join(rooRulesDir, filename)
-			content := fmt.Sprintf("# %s\n\n%s", mdcRule.Name, mdcRule.Content)
+			// Keep original filename with .mdc extension
+			originalFilename := filepath.Base(mdcRule.FilePath)
+			rulePath := filepath.Join(rooRulesDir, originalFilename)
+			// Use buildMDCContent to preserve frontmatter
+			content := c.buildMDCContent(mdcRule)
 			if err := c.writeFile(rulePath, content); err != nil {
 				return err
 			}
@@ -204,15 +206,12 @@ func (c *Converter) convertToRooCode(rules *types.CursorRules, config types.Tool
 			return fmt.Errorf("failed to create .roo directory for %s: %w", folderPath, err)
 		}
 
-		// Write MDC rule to folder's .roo directory
-		filename := fmt.Sprintf("%s.md", sanitizeFilename(mdcRule.Name))
-		rulePath := filepath.Join(folderRooDir, filename)
+		// Keep original filename with .mdc extension
+		originalFilename := filepath.Base(mdcRule.FilePath)
+		rulePath := filepath.Join(folderRooDir, originalFilename)
 
-		content := fmt.Sprintf("# %s\n\n%s", mdcRule.Name, mdcRule.Content)
-		if len(mdcRule.Globs) > 0 {
-			content = fmt.Sprintf("# %s\n\n**Applies to:** %s\n\n%s", mdcRule.Name, strings.Join(mdcRule.Globs, ", "), mdcRule.Content)
-		}
-
+		// Use buildMDCContent to preserve frontmatter
+		content := c.buildMDCContent(mdcRule)
 		if err := c.writeFile(rulePath, content); err != nil {
 			return err
 		}
