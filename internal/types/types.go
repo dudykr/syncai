@@ -82,10 +82,10 @@ func GetToolConfigs() map[TargetTool]ToolConfig {
 			Tool:                TargetRooCode,
 			SupportsGlobalRules: true,
 			SupportsFolderRules: true,
-			SupportsMDCRules:    false,
+			SupportsMDCRules:    true,
 			FileExtension:       ".md",
-			ConfigPath:          "roo-code-rules.md",
-			FolderConfigName:    ".roo-rules.md",
+			ConfigPath:          ".roo/rules",
+			FolderConfigName:    "",
 		},
 		TargetCline: {
 			Tool:                TargetCline,

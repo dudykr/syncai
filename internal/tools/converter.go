@@ -144,26 +144,97 @@ func (c *Converter) convertToWindSurf(rules *types.CursorRules, config types.Too
 
 // convertToRooCode converts to Roo Code format
 func (c *Converter) convertToRooCode(rules *types.CursorRules, config types.ToolConfig, targetDir string) error {
-	// Write global rules
-	content := c.buildGlobalContent(rules)
-	globalPath := filepath.Join(targetDir, config.ConfigPath)
-	if err := c.writeFile(globalPath, content); err != nil {
-		return err
+	// Create .roo/rules directory for workspace-wide rules
+	rooRulesDir := filepath.Join(targetDir, ".roo", "rules")
+	if err := os.MkdirAll(rooRulesDir, 0755); err != nil {
+		return fmt.Errorf("failed to create .roo/rules directory: %w", err)
 	}
 
-	// Write folder rules
-	for folderPath, folderContent := range rules.FolderRules {
-		folderRulesPath := filepath.Join(targetDir, folderPath, config.FolderConfigName)
-		if err := os.MkdirAll(filepath.Dir(folderRulesPath), 0755); err != nil {
+	// Write global rules to .roo/rules/
+	if rules.GlobalRules != "" {
+		globalRulesPath := filepath.Join(rooRulesDir, "01-global.md")
+		globalContent := "# Global Rules\n\n" + rules.GlobalRules
+		if err := c.writeFile(globalRulesPath, globalContent); err != nil {
 			return err
 		}
+	}
 
-		if err := c.writeFile(folderRulesPath, folderContent); err != nil {
+	// Write always-apply MDC rules to .roo/rules/
+	ruleIndex := 2
+	for _, mdcRule := range rules.MDCRules {
+		if mdcRule.AlwaysApply {
+			filename := fmt.Sprintf("%02d-%s.md", ruleIndex, sanitizeFilename(mdcRule.Name))
+			rulePath := filepath.Join(rooRulesDir, filename)
+			content := fmt.Sprintf("# %s\n\n%s", mdcRule.Name, mdcRule.Content)
+			if err := c.writeFile(rulePath, content); err != nil {
+				return err
+			}
+			ruleIndex++
+		}
+	}
+
+	// Write folder rules to .roo/rules/
+	for folderPath, folderContent := range rules.FolderRules {
+		filename := fmt.Sprintf("%02d-folder-%s.md", ruleIndex, sanitizeFilename(folderPath))
+		rulePath := filepath.Join(rooRulesDir, filename)
+		content := fmt.Sprintf("# Rules for %s\n\n%s", folderPath, folderContent)
+		if err := c.writeFile(rulePath, content); err != nil {
 			return err
+		}
+		ruleIndex++
+	}
+
+	// Write conditional MDC rules to .roo/rules/
+	for _, mdcRule := range rules.MDCRules {
+		if !mdcRule.AlwaysApply {
+			filename := fmt.Sprintf("%02d-conditional-%s.md", ruleIndex, sanitizeFilename(mdcRule.Name))
+			rulePath := filepath.Join(rooRulesDir, filename)
+
+			globsInfo := ""
+			if len(mdcRule.Globs) > 0 {
+				globsInfo = fmt.Sprintf("\n\n**Applies to:** %s", strings.Join(mdcRule.Globs, ", "))
+			}
+
+			content := fmt.Sprintf("# %s%s\n\n%s", mdcRule.Name, globsInfo, mdcRule.Content)
+			if err := c.writeFile(rulePath, content); err != nil {
+				return err
+			}
+			ruleIndex++
 		}
 	}
 
 	return nil
+}
+
+// sanitizeFilename removes invalid characters from filename
+func sanitizeFilename(name string) string {
+	// Replace spaces and invalid characters with hyphens
+	result := strings.ToLower(name)
+	result = strings.ReplaceAll(result, " ", "-")
+	result = strings.ReplaceAll(result, "/", "-")
+	result = strings.ReplaceAll(result, "\\", "-")
+	result = strings.ReplaceAll(result, ":", "-")
+	result = strings.ReplaceAll(result, "*", "-")
+	result = strings.ReplaceAll(result, "?", "-")
+	result = strings.ReplaceAll(result, "\"", "-")
+	result = strings.ReplaceAll(result, "<", "-")
+	result = strings.ReplaceAll(result, ">", "-")
+	result = strings.ReplaceAll(result, "|", "-")
+
+	// Remove multiple consecutive hyphens
+	for strings.Contains(result, "--") {
+		result = strings.ReplaceAll(result, "--", "-")
+	}
+
+	// Trim hyphens from start and end
+	result = strings.Trim(result, "-")
+
+	// If empty, use default name
+	if result == "" {
+		result = "unnamed"
+	}
+
+	return result
 }
 
 // convertToCline converts to Cline format
