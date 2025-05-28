@@ -1,0 +1,17 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Testing Guidelines
+
+## Unit Tests
+- Write tests for all components
+- Use React Testing Library
+- Mock external dependencies
+- Aim for 80%+ code coverage
+
+## Integration Tests
+- Test component interactions
+- Verify data flow
+- Test error scenarios

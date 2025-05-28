@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# API Development Guidelines
+
+## RESTful Design
+- Use proper HTTP methods
+- Follow REST conventions
+- Implement proper status codes
+
+## Error Handling
+- Return consistent error formats
+- Use appropriate HTTP status codes
+- Log all errors with context
