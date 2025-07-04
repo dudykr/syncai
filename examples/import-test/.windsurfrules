@@ -1,0 +1,25 @@
+# WindSurf Development Rules
+
+## Code Quality
+- Write clean, readable code
+- Use consistent naming conventions
+- Add comments for complex logic
+- Follow SOLID principles
+
+## TypeScript Best Practices
+- Use strict mode
+- Define interfaces for all data structures
+- Use type guards for runtime type checking
+- Avoid any type unless absolutely necessary
+
+## React Development
+- Use functional components with hooks
+- Implement proper error boundaries
+- Use lazy loading for route components
+- Optimize re-renders with memo and callback hooks
+
+## Testing Strategy
+- Write unit tests for utilities
+- Write integration tests for components
+- Use React Testing Library for component tests
+- Mock external dependencies appropriately
