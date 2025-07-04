@@ -138,7 +138,7 @@ your-project/
 3. **Transformation**: Converts rules to each target tool's format:
    - **WindSurf**: Combines all rules into `.windsurfrules`
    - **Roo Code**: Creates separate `.md` files in `.roocode/`
-   - **Cline**: Updates `cline.customInstructions` in `.vscode/settings.json`
+   - **Cline**: Generates `.clinerules` file
    - **Claude Code**: Generates comprehensive `CLAUDE.md`
 
 4. **Parallel Processing**: Builds configurations for all specified tools simultaneously
