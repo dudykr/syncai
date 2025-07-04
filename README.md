@@ -17,7 +17,7 @@ A CLI tool to synchronize custom instructions across different AI tools. Convert
 | **Cursor IDE** | `.cursorrules`, `.cursor/rules/*.mdc` | Native (no conversion needed) |
 | **WindSurf** | `.cursorrules`, `.cursor/rules/*.mdc` | `.windsurfrules` |
 | **Roo Code** | `.cursorrules`, `.cursor/rules/*.mdc` | `.roocode/*.md` |
-| **Cline** | `.cursorrules`, `.cursor/rules/*.mdc` | `.vscode/settings.json` |
+| **Cline** | `.cursorrules`, `.cursor/rules/*.mdc` | `.clinerules` |
 | **Claude Code** | `.cursorrules`, `.cursor/rules/*.mdc` | `CLAUDE.md` |
 
 ## Installation
