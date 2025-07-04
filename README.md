@@ -17,7 +17,7 @@ A CLI tool to synchronize custom instructions across different AI tools. Convert
 | **Cursor IDE** | `.cursorrules`, `.cursor/rules/*.mdc` | Native (no conversion needed) |
 | **WindSurf** | `.cursorrules`, `.cursor/rules/*.mdc` | `.windsurfrules` |
 | **Roo Code** | `.cursorrules`, `.cursor/rules/*.mdc` | `.roocode/*.md` |
-| **Cline** | `.cursorrules`, `.cursor/rules/*.mdc` | `.vscode/settings.json` |
+| **Cline** | `.cursorrules`, `.cursor/rules/*.mdc` | `.clinerules` |
 | **Claude Code** | `.cursorrules`, `.cursor/rules/*.mdc` | `CLAUDE.md` |
 
 ## Installation
@@ -56,7 +56,7 @@ syncai import
 - `cursor` - Cursor IDE (validates existing files)
 - `windsurf` - WindSurf (generates `.windsurfrules`)
 - `roo-code` - Roo Code (generates `.roocode/*.md`)
-- `cline` - Cline (updates `.vscode/settings.json`)
+- `cline` - Cline (generates `.clinerules`)
 - `claude-code` - Claude Code (generates `CLAUDE.md`)
 
 ## Configuration Files
@@ -138,7 +138,7 @@ your-project/
 3. **Transformation**: Converts rules to each target tool's format:
    - **WindSurf**: Combines all rules into `.windsurfrules`
    - **Roo Code**: Creates separate `.md` files in `.roocode/`
-   - **Cline**: Updates `cline.customInstructions` in `.vscode/settings.json`
+   - **Cline**: Generates `.clinerules` file
    - **Claude Code**: Generates comprehensive `CLAUDE.md`
 
 4. **Parallel Processing**: Builds configurations for all specified tools simultaneously
