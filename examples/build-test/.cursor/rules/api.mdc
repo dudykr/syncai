@@ -1,0 +1,54 @@
+---
+description: API Development Rules
+globs: ["**/api/**/*.ts", "**/routes/**/*.ts"]
+alwaysApply: true
+---
+
+# API Development Guidelines
+
+## Error Handling
+- Always use try-catch blocks
+- Return consistent error response format
+- Log errors with appropriate level
+- Never expose internal error details to clients
+
+## Validation
+- Validate all input parameters
+- Use schema validation libraries like Joi or Zod
+- Sanitize input data
+- Return clear validation error messages
+
+## Security
+- Use authentication middleware
+- Validate authorization for each endpoint
+- Rate limit API endpoints
+- Sanitize all user inputs
+- Use HTTPS in production
+
+## Example API Route
+```typescript
+import { Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
+
+const createUserSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  age: z.number().min(0).max(150)
+});
+
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const validatedData = createUserSchema.parse(req.body);
+    
+    // Process user creation
+    const user = await userService.create(validatedData);
+    
+    res.status(201).json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+```

@@ -1,0 +1,69 @@
+---
+description: Component Styling Rules
+globs: ["**/*.module.css", "**/*.styled.ts"]
+alwaysApply: false
+---
+
+# Component Styling Guidelines
+
+## CSS Modules
+- Use camelCase for class names
+- Prefix component-specific styles with component name
+- Use semantic class names
+- Avoid deep nesting
+
+## Styled Components
+- Use TypeScript interfaces for props
+- Keep styled components small and focused
+- Use theme variables for consistent styling
+- Name styled components descriptively
+
+## Example CSS Module
+```css
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.button {
+  background-color: var(--color-accent);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: var(--color-accent-hover);
+}
+```
+
+## Example Styled Component
+```typescript
+import styled from 'styled-components';
+
+interface ButtonProps {
+  variant?: 'primary' | 'secondary';
+  size?: 'small' | 'medium' | 'large';
+}
+
+export const StyledButton = styled.button<ButtonProps>`
+  padding: ${props => props.size === 'small' ? '0.25rem 0.5rem' : '0.5rem 1rem'};
+  background-color: ${props => props.variant === 'primary' ? props.theme.colors.primary : props.theme.colors.secondary};
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+```

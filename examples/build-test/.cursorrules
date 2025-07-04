@@ -1,0 +1,20 @@
+# Global Development Rules
+
+## Code Style
+- Use TypeScript for all new JavaScript files
+- Follow ESLint configuration strictly
+- Use meaningful variable names
+- Add JSDoc comments for all functions
+- Prefer const over let, avoid var
+
+## Testing
+- Write unit tests for all new functions
+- Use Jest for testing framework
+- Aim for 80% test coverage
+- Test edge cases and error conditions
+
+## Git Workflow
+- Use conventional commits
+- Create feature branches for new work
+- Squash commits before merging
+- Keep commit messages concise but descriptive
