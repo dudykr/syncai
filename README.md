@@ -23,15 +23,7 @@ A CLI tool to synchronize custom instructions across different AI tools. Convert
 ## Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/dudykr/syncai.git
-cd syncai
-
-# Build the binary
-go build -o syncai
-
-# Install globally (optional)
-go install
+go install github.com/dudykr/syncai@latest
 ```
 
 ## Usage
