@@ -17,24 +17,8 @@ func (c *Cline) Name() string {
 func (c *Cline) Build(config *ProjectConfig) error {
 	fmt.Printf("Building Cline configuration...\n")
 	
-	// Cline uses .vscode/settings.json with cline.customInstructions
-	vscodeDir := filepath.Join(config.RootPath, ".vscode")
-	settingsPath := filepath.Join(vscodeDir, "settings.json")
-	
-	// Create .vscode directory if it doesn't exist
-	if err := os.MkdirAll(vscodeDir, 0755); err != nil {
-		return fmt.Errorf("failed to create .vscode directory: %w", err)
-	}
-	
-	// Read existing settings.json if it exists
-	var settings map[string]interface{}
-	if data, err := os.ReadFile(settingsPath); err == nil {
-		if err := json.Unmarshal(data, &settings); err != nil {
-			settings = make(map[string]interface{})
-		}
-	} else {
-		settings = make(map[string]interface{})
-	}
+	// Cline uses .clinerules file
+	clinerrulesPath := filepath.Join(config.RootPath, ".clinerules")
 	
 	// Build custom instructions
 	var instructions strings.Builder
@@ -70,21 +54,13 @@ func (c *Cline) Build(config *ProjectConfig) error {
 		return nil
 	}
 	
-	// Set the custom instructions
-	settings["cline.customInstructions"] = instructions.String()
-	
-	// Write settings.json
-	settingsData, err := json.MarshalIndent(settings, "", "  ")
+	// Write .clinerules file
+	err := os.WriteFile(clinerrulesPath, []byte(instructions.String()), 0644)
 	if err != nil {
-		return fmt.Errorf("failed to marshal settings: %w", err)
+		return fmt.Errorf("failed to write .clinerules: %w", err)
 	}
 	
-	err = os.WriteFile(settingsPath, settingsData, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to write settings.json: %w", err)
-	}
-	
-	fmt.Printf("  ✓ Updated .vscode/settings.json with cline.customInstructions\n")
+	fmt.Printf("  ✓ Updated .clinerules\n")
 	return nil
 }
 
@@ -93,15 +69,10 @@ func (c *Cline) Import(rootPath string) (*ProjectConfig, error) {
 		RootPath: rootPath,
 	}
 	
-	// Read from .vscode/settings.json
-	settingsPath := filepath.Join(rootPath, ".vscode", "settings.json")
-	if data, err := os.ReadFile(settingsPath); err == nil {
-		var settings map[string]interface{}
-		if err := json.Unmarshal(data, &settings); err == nil {
-			if instructions, ok := settings["cline.customInstructions"].(string); ok {
-				config.CursorRules = instructions
-			}
-		}
+	// Read from .clinerules
+	clinerrulesPath := filepath.Join(rootPath, ".clinerules")
+	if data, err := os.ReadFile(clinerrulesPath); err == nil {
+		config.CursorRules = string(data)
 	}
 	
 	return config, nil
