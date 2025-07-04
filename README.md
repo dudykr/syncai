@@ -56,7 +56,7 @@ syncai import
 - `cursor` - Cursor IDE (validates existing files)
 - `windsurf` - WindSurf (generates `.windsurfrules`)
 - `roo-code` - Roo Code (generates `.roocode/*.md`)
-- `cline` - Cline (updates `.vscode/settings.json`)
+- `cline` - Cline (generates `.clinerules`)
 - `claude-code` - Claude Code (generates `CLAUDE.md`)
 
 ## Configuration Files
